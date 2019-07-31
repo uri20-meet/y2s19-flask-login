@@ -15,6 +15,7 @@ def login():
     user = get_user(request.form['username'])
     if user != None and user.verify_password(request.form["password"]):
         login_session['name'] = user.username
+        login_session['food'] = user.fav_food
         login_session['logged_in'] = True
         return logged_in()
     else:
@@ -27,6 +28,11 @@ def signup():
     user = get_user(request.form['username'])
     if user == None:
         add_user(request.form['username'],request.form['password'])
+        user = get_user(request.form['username'])
+        login_session['name'] = user.username
+        login_session['food'] = user.fav_food
+        login_session['logged_in'] = True
+        return logged_in()
     return home()
 
 
@@ -37,7 +43,17 @@ def logged_in():
 
 @app.route('/logout')
 def logout():
+    login_session['logged_in'] = False
     return home()
+
+@app.route('/logged_in', methods=['POST'])
+def update_food():
+    #check that username isn't already taken
+    user = get_user(login_session['name'])
+    user.fav_food = request.form['fav_food']
+    login_session['food'] = user.fav_food
+    session.commit()
+    return render_template('logged.html')
 
 
 
